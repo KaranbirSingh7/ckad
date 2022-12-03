@@ -3,172 +3,188 @@
     - Github repo: 
         - [ckad-crash-course](https://github.com/bmuschko/ckad-crash-course)
         - [ckad-exercises](https://github.com/dgkanatsios/CKAD-exercises)
+    - K8s Playground:
+        - https://killercoda.com/killer-shell-ckad/scenario/playground
 - ~/.bashrc:
     - ```shell
-# set alias or export following
-export do="--dry-run=client -oyaml"
-export now="--grace-period 0 --force"```
+      # set alias or export following
+      export do="--dry-run=client -oyaml"
+      export now="--grace-period 0 --force"
+      ```
 - Notes:
     - configmap:
         - use all configmap values as environment variables:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - image: nginx
-    name: nginx
-    envFrom:
-    - configMapRef:
-        name: <my-configmap>
-      ```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                containers:
+                - image: nginx
+                  name: nginx
+                  envFrom:
+                  - configMapRef:
+                      name: <my-configmap>
+              ```
         - use single value from configmap as environment variable:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - image: nginx
-    name: nginx
-    env:
-      - name: USERNAME
-        valueFrom:
-          configMapKeyRef:
-            name: <my-configmap>
-            key: username```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                containers:
+                - image: nginx
+                  name: nginx
+                  env:
+                    - name: USERNAME
+                      valueFrom:
+                        configMapKeyRef:
+                          name: <my-configmap>
+                          key: username
+              ```
         - mount configmap as volume/file:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  volumes:
-  - name: config-dir
-    configMap: 
-      name: <my-configmap>
-  containers:
-    - name: nginx
-      image: nginx
-      volumeMounts:
-      - name: config-dir
-        mountPath: /etc/config```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                volumes:
+                - name: config-dir
+                  configMap: 
+                    name: <my-configmap>
+                containers:
+                  - name: nginx
+                    image: nginx
+                    volumeMounts:
+                    - name: config-dir
+                      mountPath: /etc/config
+              ```
         - mount configmap to specific path in volume:
             - ```yaml
-# mount configmap SPECIAL_LEVEL to /etc/config/keys
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  volumes:
-  - name: config-dir
-    configMap: 
-      name: <my-configmap>
-      items:
-      - key: SPECIAL_LEVEL
-        path: keys
-  containers:
-    - name: nginx
-      image: nginx
-      volumeMounts:
-      - name: config-dir
-        mountPath: /etc/config```
+              # mount configmap SPECIAL_LEVEL to /etc/config/keys
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                volumes:
+                - name: config-dir
+                  configMap: 
+                    name: <my-configmap>
+                    items:
+                    - key: SPECIAL_LEVEL
+                      path: keys
+                containers:
+                  - name: nginx
+                    image: nginx
+                    volumeMounts:
+                    - name: config-dir
+                      mountPath: /etc/config
+              ```
     - secrets:
         - use all secrets as environment variables:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - image: nginx
-    name: nginx
-    envFrom:
-    - secretRef:
-        name: <my-secret>```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                containers:
+                - image: nginx
+                  name: nginx
+                  envFrom:
+                  - secretRef:
+                      name: <my-secret>
+              ```
         - use single value from configmap as environment variable:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - image: nginx
-    name: nginx
-    env:
-      - name: DB_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: <my-password>
-            key: db_password```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                containers:
+                - image: nginx
+                  name: nginx
+                  env:
+                    - name: DB_PASSWORD
+                      valueFrom:
+                        secretKeyRef:
+                          name: <my-password>
+                          key: db_password
+              ```
         - mount secret as volume:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  volumes:
-  - name: secret-dir
-    secret:
-      secretName: <my-secret>
-  containers:
-  - image: nginx
-    name: nginx
-    volumeMounts:
-    - name: secret-dir
-      mountPaht: /env/secret-volume```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                volumes:
+                - name: secret-dir
+                  secret:
+                    secretName: <my-secret>
+                containers:
+                - image: nginx
+                  name: nginx
+                  volumeMounts:
+                  - name: secret-dir
+                    mountPaht: /env/secret-volume
+              ```
     - annotations and labels:
         - annotate multiple pods:
             - ```shell
-kubectl annotate pod nginx{1..3} description='my description'```
+              kubectl annotate pod nginx{1..3} description='my description'
+              ```
         - remove annotation from multiple pods:
             - ```shell
-kubectl annotate pod nginx{1..3} description-```
+              kubectl annotate pod nginx{1..3} description-
+              ```
         - add new label to specific labelled pods:
             - ```shell
-kubectl label pod -l "app in(v1,v2)" tier=web```
+              kubectl label pod -l "app in(v1,v2)" tier=web
+              ```
         - add new label as column to output:
             - ```shell
-kubectl get po -L app```
+              kubectl get po -L app
+              ```
         - Label pod, overwrite existing label and remove label:
             - ```shell
-# add new label
-kubectl label pod my-pod region=cac
+              # add new label
+              kubectl label pod my-pod region=cac
 
-# modify/overwrite existing label
-kubectl label pod my-pod region=use --overwrite
+              # modify/overwrite existing label
+              kubectl label pod my-pod region=use --overwrite
 
-# remove label
-kubectl label pod my-pod region-```
+              # remove label
+              kubectl label pod my-pod region-
+              ```
         - labels vs annotations:
             - labels:
                 - max character length is 63
                 - used for querying data or k8s objects
                     - sample query:
                         - ```shell
-`kubectl get pods --show-labels -l 'region in (cac, cae),env=prod'```
+                          kubectl get pods --show-labels -l 'region in (cac, cae),env=prod'
+                          ```
                 - similar to tags applied on a blog post
             - annotations:
                 - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  annotations:
-    release: prod
-    author: 10x Engineer
-    commitID: xxxxx
-spec:
-  containers:
-  - name: nginx
-    image: nginx```
+                  apiVersion: v1
+                  kind: Pod
+                  metadata:
+                    annotations:
+                      release: prod
+                      author: 10x Engineer
+                      commitID: xxxxx
+                  spec:
+                    containers:
+                    - name: nginx
+                      image: nginx
+                  ```
                 - used for descriptive metadata that cannot be fit into labels
                 - CANNOT be used for querying
                 - you would use annotation for: SCM commit ID, releaseVersion and/or contact details
@@ -177,38 +193,41 @@ spec:
     - requests, limits and autoscaling:
         - sample pods with limits:
             - ```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - image: nginx
-    name: nginx
-    resources:
-      requests:
-        memory: "64Mi"
-        cpu: "250m"
-      limits:
-        memory: "128Mi"
-        cpu: "500m"```
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                name: nginx
+              spec:
+                containers:
+                - image: nginx
+                  name: nginx
+                  resources:
+                    requests:
+                      memory: "64Mi"
+                      cpu: "250m"
+                    limits:
+                      memory: "128Mi"
+                      cpu: "500m"
+              ```
         - enable autoscaling on a pod:
             - [[VerticalPodAutoscaler]]
                 - these can only work if you cloud provider support working of these /shrug
             - [[HorizontalPodAutoscaler]]
                 - requires metrics server to be enabled
                 - ```shell
-# enable scaling based on CPU average of 70%
-k autoscale deployment/my-deploy --min=3 --max=5 --cpu-percent=70
+                  # enable scaling based on CPU average of 70%
+                  k autoscale deployment/my-deploy --min=3 --max=5 --cpu-percent=70
 
-# check HPA
-k describe hpa```
+                  # check HPA
+                  k describe hpa
+                  ```
     - service:
         - ```shell
-# create a new pod + expose it via service
-k run nginx --image=nginx --restart=Never --port --expose=80
-# service/nginx created
-# pod/nginx created```
+          # create a new pod + expose it via service
+          k run nginx --image=nginx --restart=Never --port --expose=80
+          # service/nginx created
+          # pod/nginx created
+          ```
         - a service will always have two ports:
             - incoming port (where it will accept requests) `--port`
             - outgoing port (where to send request to), normally this is where container is listening on `--targetPort`
@@ -240,10 +259,12 @@ k run nginx --image=nginx --restart=Never --port --expose=80
     - You are NOT supposed to touch anything in `kube-` prefixed namespaces :-)
     - Run a temporary container to check if other pods is responding and in good shape, you can use this for DNS querying and other stuff as well:
         - ```shell
-kubectl run busybox --image=busybox --restart=Never --rm -it -- wget -O- <POD_IP>```
+          kubectl run busybox --image=busybox --restart=Never --rm -it -- wget -O- <POD_IP>
+          ```
     - Check for pod events:
         - ```shell
-kubectl get pod nginx | grep Events -C 10```
+          kubectl get pod nginx | grep Events -C 10
+          ```
     - Always create docker image that executes program other than default/root user(0)
     - Namespace by default is all open with no CPU/Memory quota defined, you can really mess up this if no limits are present on your namespaces.
     - Container patterns:
@@ -278,8 +299,9 @@ kubectl get pod nginx | grep Events -C 10```
                 - https://github.com/ahmetb/kubernetes-network-policy-recipes
     - State Persistence:
         - ```shell
-# list existing storageclasses
-k get storageclass```
+          # list existing storageclasses
+          k get storageclass
+          ```
         - {{mermaid}}
             - flowchart RL
             - PersistentVolume ---> PersistentVolumeClaim
